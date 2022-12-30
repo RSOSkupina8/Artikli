@@ -1,1 +1,1 @@
-INSERT INTO artikli (name, product, price, gross_weight, created, uri) VALUES ('Item 0', 'Meat', 15.8, 69.8, TIMESTAMP '2006-01-01 15:36:38', 'https://www.nasa.gov/sites/default/files/styles/full_width/public/thumbnails/image/tess_first_light-tb.jpg');
+INSERT INTO artikli (name, store, price) VALUES ('Rdeče vino', 'Mercator', 15.3), ('Rdeče vino', 'Spar', 15.4), ('Kruh', 'Mercator', 15.5), ('Kruh', 'Spar', 15.6), ('Mleko', 'Mercator', 15.7), ('Mleko', 'Spar', 15.9);

@@ -45,10 +45,6 @@ kumuluzee:
 rest-properties:
   maintenance-mode: false
   broken: false
-app-properties:
-  amazon-rekognition:
-    access-key:
-    secret-key:
 
 
 

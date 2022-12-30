@@ -6,11 +6,8 @@ public class Artikli {
 
     private Integer artikelId;
     private String name;
-    private String product;
+    private String store;
     private Float price;
-    private Float gross_weight;
-    private Instant created;
-    private String uri;
     public String getName() {
         return name;
     }
@@ -19,12 +16,12 @@ public class Artikli {
         this.name = name;
     }
 
-    public String getProduct() {
-        return product;
+    public String getStore() {
+        return store;
     }
 
-    public void setProduct(String product) {
-        this.product = product;
+    public void setStore(String store) {
+        this.store = store;
     }
 
     public Float getPrice() {
@@ -33,30 +30,6 @@ public class Artikli {
 
     public void setPrice(Float price) {
         this.price = price;
-    }
-
-    public Float getGross_weight() {
-        return gross_weight;
-    }
-
-    public void setGross_weight(Float gross_weight) {
-        this.gross_weight = gross_weight;
-    }
-
-    public Instant getCreated() {
-        return created;
-    }
-
-    public void setCreated(Instant created) {
-        this.created = created;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(String uri) {
-        this.uri = uri;
     }
 
     public Integer getArtikelId() {

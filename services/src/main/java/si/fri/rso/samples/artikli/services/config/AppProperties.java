@@ -15,12 +15,6 @@ public class AppProperties {
     @ConfigValue(watch = true)
     private boolean healthy;
 
-    @ConfigValue("amazon-rekognition.access-key")
-    private String amazonRekognitionAccessKey;
-
-    @ConfigValue("amazon-rekognition.secret-key")
-    private String amazonRekognitionSecretKey;
-
     public boolean isExternalServicesEnabled() {
         return externalServicesEnabled;
     }
@@ -37,19 +31,4 @@ public class AppProperties {
         this.healthy = healthy;
     }
 
-    public String getAmazonRekognitionSecretKey() {
-        return amazonRekognitionSecretKey;
-    }
-
-    public void setAmazonRekognitionSecretKey(String amazonRekognitionSecretKey) {
-        this.amazonRekognitionSecretKey = amazonRekognitionSecretKey;
-    }
-
-    public String getAmazonRekognitionAccessKey() {
-        return amazonRekognitionAccessKey;
-    }
-
-    public void setAmazonRekognitionAccessKey(String amazonRekognitionAccessKey) {
-        this.amazonRekognitionAccessKey = amazonRekognitionAccessKey;
-    }
 }

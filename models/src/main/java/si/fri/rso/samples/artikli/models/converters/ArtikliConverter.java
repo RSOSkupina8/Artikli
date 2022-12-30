@@ -9,12 +9,9 @@ public class ArtikliConverter {
 
         Artikli dto = new Artikli();
         dto.setArtikelId(entity.getId());
-        dto.setCreated(entity.getCreated());
         dto.setName(entity.getName());
-        dto.setProduct(entity.getProduct());
+        dto.setStore(entity.getStore());
         dto.setPrice(entity.getPrice());
-        dto.setGross_weight(entity.getGross_weight());
-        dto.setUri(entity.getUri());
 
         return dto;
 
@@ -23,12 +20,9 @@ public class ArtikliConverter {
     public static ArtikliEntity toEntity(Artikli dto) {
 
         ArtikliEntity entity = new ArtikliEntity();
-        entity.setCreated(dto.getCreated());
         entity.setName(dto.getName());
-        entity.setProduct(dto.getProduct());
+        entity.setStore(dto.getStore());
         entity.setPrice(dto.getPrice());
-        entity.setGross_weight(dto.getGross_weight());
-        entity.setUri(dto.getUri());
 
         return entity;
 

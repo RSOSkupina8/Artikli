@@ -13,8 +13,6 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import si.fri.rso.samples.artikli.api.v1.dtos.UploadArtikliResponse;
 import si.fri.rso.samples.artikli.lib.Artikli;
 import si.fri.rso.samples.artikli.services.beans.ArtikliBean;
-import si.fri.rso.samples.artikli.services.clients.AmazonRekognitionClient;
-
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -46,9 +44,6 @@ public class ArtikliResource {
 
     @Context
     protected UriInfo uriInfo;
-
-    @Inject
-    private AmazonRekognitionClient amazonRekognitionClient;
 
     @Operation(description = "Get all artikli metadata.", summary = "Get all metadata")
     @APIResponses({
@@ -100,7 +95,7 @@ public class ArtikliResource {
             required = true, content = @Content(
             schema = @Schema(implementation = Artikli.class))) Artikli artikli) {
 
-        if ((artikli.getName() == null || artikli.getProduct() == null || artikli.getUri() == null)) {
+        if ((artikli.getName() == null || artikli.getStore() == null)) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         else {
