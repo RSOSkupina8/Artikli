@@ -12,6 +12,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.json.JSONObject;
 import si.fri.rso.samples.artikli.api.v1.dtos.UploadArtikliResponse;
 import si.fri.rso.samples.artikli.lib.Artikli;
 import si.fri.rso.samples.artikli.services.beans.ArtikliBean;
@@ -25,10 +26,17 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
@@ -162,7 +170,7 @@ public class ArtikliResource {
 
     @PUT
     @Path("refresh/{artikliId}")
-    public Response putRefreshArtikli(@Parameter(description = "Artikli Name.", required = true)
+    public Response putRefreshArtikli(@Parameter(description = "Artikli Id.", required = true)
                                @PathParam("artikliId") Integer artikliId,
                                @RequestBody(
                                        description = "DTO object with artikli metadata.",
@@ -171,19 +179,89 @@ public class ArtikliResource {
                                Artikli artikli){
 
         artikli = artikliBean.getArtikli(artikliId);
+        String artikliName = artikli.getName();
+        try {
+            Float price = makeMercatorApiCall(artikliName);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        CompletableFuture<List<Float>> future = new CompletableFuture<>();
+        new Thread(() -> {
+            try {
+                List<Float> prices = makeApiCall(artikliName);
+                future.complete(prices);
+            } catch (IOException e) {
+                future.completeExceptionally(e);
+            }
+        }).start();
+        CompletionStage<Void> callback = future.thenAccept(response -> {
+            // Update the Person object with the API response
+            System.out.println("XXXXXXXXXXX PRICE XXXXXXXXXX" + response.toString());
 
-        CompletionStage<String> stringCompletionStage =
-                artikliProcessingApi.processArtikliAsynch(new ArtikliProcessRequest(artikliId, 0));
-
-        stringCompletionStage.whenComplete((s, throwable) -> System.out.println(s));
-        stringCompletionStage.exceptionally(throwable -> {
-            log.severe(throwable.getMessage());
-            return throwable.getMessage();
         });
 
-//        artikli = artikliBean.putArtikli(artikliId, artikli);
+        // Wait for the callback to complete
+        callback.toCompletableFuture().join();
+
         return Response.status(Response.Status.NOT_MODIFIED).build();
 
+    }
+
+    private static float makeMercatorApiCall(String name) throws Exception{
+        try{
+            URL url = new URL("https://trgovina.mercator.si/market/products/browseProducts/getProducts?limit=1&offset=0&filterData[search]="+
+                    URLEncoder.encode(name, "UTF-8"));
+
+            System.out.println(url.toString());
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuilder content = new StringBuilder();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+            in.close();
+
+            String contentStr = content.toString().substring(1, content.length()-1);
+            JSONObject jsonObject = new JSONObject(contentStr);
+            JSONObject dataObject = jsonObject.getJSONObject("data");
+            Float price = dataObject.getFloat("current_price");
+            System.out.println("Price: "+price);
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private static List<Float> makeApiCall(String name) throws IOException {
+        // Make a URL to the web page
+        URL url = new URL("http://20.208.58.20:8080/v1/scrapper/"+name);
+        System.out.println(url.toString());
+
+        // Get the input stream through URL Connection
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("GET");
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuilder content = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            content.append(inputLine);
+        }
+        in.close();
+        String[] elements = content.toString().replaceAll("\\[|\\]", "").split(",");
+
+        // Parse the elements into floats
+        List<Float> prices = Arrays.stream(elements)
+                .map(Float::parseFloat)
+                .collect(Collectors.toList());
+
+        // Print the list of floats
+        System.out.println(prices);
+
+        // Return the response
+        return prices;
     }
 
     @Operation(description = "Delete metadata for artikel.", summary = "Delete metadata")
