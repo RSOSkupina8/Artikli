@@ -8,7 +8,9 @@ import java.time.Instant;
 @NamedQueries(value =
         {
                 @NamedQuery(name = "ArtikliEntity.getAll",
-                        query = "SELECT im FROM ArtikliEntity im")
+                        query = "SELECT im FROM ArtikliEntity im"),
+                @NamedQuery(name = "ArtikliEntity.getAllWithName",
+                        query = "SELECT ar FROM ArtikliEntity ar WHERE ar.name=:name")
         })
 public class ArtikliEntity {
 

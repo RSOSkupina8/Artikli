@@ -66,6 +66,22 @@ public class ArtikliResource {
         return Response.status(Response.Status.OK).entity(artikli).build();
     }
 
+    @Operation(description = "Get all artikli with name.", summary = "Get all metadata")
+    @APIResponses({
+            @APIResponse(responseCode = "200",
+                    description = "List of artikli",
+                    content = @Content(schema = @Schema(implementation = Artikli.class, type = SchemaType.ARRAY)),
+                    headers = {@Header(name = "X-Total-Count", description = "Number of objects in list")}
+            )})
+    @GET
+    @Path("/name/{name}")
+    public Response getArtikli(@Parameter(description = "Name of artikel.", required = true)
+                                   @PathParam("name") String name) {
+
+        List<Artikli> artikli = artikliBean.getArtikliWithName(name);
+        return Response.status(Response.Status.OK).entity(artikli).build();
+    }
+
 
     @Operation(description = "Get metadata for artikel.", summary = "Get metadata for artikel")
     @APIResponses({
