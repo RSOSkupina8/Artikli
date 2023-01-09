@@ -10,9 +10,12 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import si.fri.rso.samples.artikli.api.v1.dtos.UploadArtikliResponse;
 import si.fri.rso.samples.artikli.lib.Artikli;
 import si.fri.rso.samples.artikli.services.beans.ArtikliBean;
+import si.fri.rso.samples.artikli.services.clients.ArtikliProcessingApi;
+import si.fri.rso.samples.artikli.services.dtos.ArtikliProcessRequest;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -26,6 +29,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
+import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 
@@ -41,6 +45,9 @@ public class ArtikliResource {
     @Inject
     private ArtikliBean artikliBean;
 
+    @Inject
+    @RestClient
+    private ArtikliProcessingApi artikliProcessingApi;
 
     @Context
     protected UriInfo uriInfo;
@@ -56,7 +63,6 @@ public class ArtikliResource {
     public Response getArtikli() {
 
         List<Artikli> artikli = artikliBean.getArtikliFilter(uriInfo);
-
         return Response.status(Response.Status.OK).entity(artikli).build();
     }
 
@@ -117,12 +123,14 @@ public class ArtikliResource {
     @PUT
     @Path("{artikliId}")
     public Response putArtikli(@Parameter(description = "Artikli ID.", required = true)
-                                     @PathParam("artikliId") Integer artikliId,
+                               @PathParam("artikliId") Integer artikliId,
                                @RequestBody(
-                                             description = "DTO object with artikli metadata.",
-                                             required = true, content = @Content(
-                                             schema = @Schema(implementation = Artikli.class)))
-                                     Artikli artikli){
+                                       description = "DTO object with artikli metadata.",
+                                       required = true, content = @Content(
+                                       schema = @Schema(implementation = Artikli.class)))
+                               Artikli artikli){
+
+        artikli = artikliBean.getArtikli(artikliId);
 
         artikli = artikliBean.putArtikli(artikliId, artikli);
 
@@ -130,6 +138,32 @@ public class ArtikliResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
+        return Response.status(Response.Status.NOT_MODIFIED).build();
+
+    }
+
+    @PUT
+    @Path("refresh/{artikliId}")
+    public Response putRefreshArtikli(@Parameter(description = "Artikli Name.", required = true)
+                               @PathParam("artikliId") Integer artikliId,
+                               @RequestBody(
+                                       description = "DTO object with artikli metadata.",
+                                       required = true, content = @Content(
+                                       schema = @Schema(implementation = Artikli.class)))
+                               Artikli artikli){
+
+        artikli = artikliBean.getArtikli(artikliId);
+
+        CompletionStage<String> stringCompletionStage =
+                artikliProcessingApi.processArtikliAsynch(new ArtikliProcessRequest(artikliId, 0));
+
+        stringCompletionStage.whenComplete((s, throwable) -> System.out.println(s));
+        stringCompletionStage.exceptionally(throwable -> {
+            log.severe(throwable.getMessage());
+            return throwable.getMessage();
+        });
+
+//        artikli = artikliBean.putArtikli(artikliId, artikli);
         return Response.status(Response.Status.NOT_MODIFIED).build();
 
     }
