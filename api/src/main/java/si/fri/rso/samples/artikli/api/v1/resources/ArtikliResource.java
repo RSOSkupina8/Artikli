@@ -11,12 +11,11 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
+//import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.json.JSONObject;
 import si.fri.rso.samples.artikli.api.v1.dtos.UploadArtikliResponse;
 import si.fri.rso.samples.artikli.lib.Artikli;
 import si.fri.rso.samples.artikli.services.beans.ArtikliBean;
-import si.fri.rso.samples.artikli.services.dtos.ArtikliProcessRequest;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -193,15 +192,7 @@ public class ArtikliResource {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-//        CompletableFuture<List<Float>> future = new CompletableFuture<>();
-//        new Thread(() -> {
-//            try {
-//                List<Float> prices = makeApiCall(artikliName);
-//                future.complete(prices);
-//            } catch (IOException e) {
-//                future.completeExceptionally(e);
-//            }
-//        }).start();
+
         CompletableFuture<List<Float>> apiResult = CompletableFuture.supplyAsync(() -> {
             List<Float> prices = null;
             try {
