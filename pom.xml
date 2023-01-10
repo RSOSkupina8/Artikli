@@ -32,6 +32,7 @@
 
         <kumuluzee-health.version>2.4.4</kumuluzee-health.version>
         <kumuluzee-metrics.version>2.3.0</kumuluzee-metrics.version>
+        <kumuluzee-cors.version>1.0.6</kumuluzee-cors.version>
 
         <kumuluzee-logs.version>1.4.6</kumuluzee-logs.version>
         <aws-java-sdk.version>1.12.350</aws-java-sdk.version>
@@ -90,6 +91,12 @@
                 <groupId>com.kumuluz.ee.health</groupId>
                 <artifactId>kumuluzee-health</artifactId>
                 <version>${kumuluzee-health.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.kumuluz.ee.cors</groupId>
+                <artifactId>kumuluzee-cors</artifactId>
+                <version>${kumuluzee-cors.version}</version>
             </dependency>
 
             <dependency>

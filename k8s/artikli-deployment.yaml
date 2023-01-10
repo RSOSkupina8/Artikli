@@ -13,13 +13,13 @@ spec:
         app: artikli
     spec:
       containers:
-        - image: fdemsar/artikli
+        - image: fdemsar/artikli:2023-01-09-22-13-13
           name: artikli
           env:
             - name: KUMULUZEE_DATASOURCES0_CONNECTIONURL
-              value: jdbc:postgresql://mouse.db.elephantsql.com:5432/ajhhwgxt
+              value: jdbc:postgresql://snuffleupagus.db.elephantsql.com:5432/zismkcwt
             - name: KUMULUZEE_DATASOURCES0_USERNAME
-              value: ajhhwgxt
+              value: zismkcwt
             - name: KUMULUZEE_DATASOURCES0_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -33,7 +33,7 @@ spec:
             httpGet:
               path: /health/live
               port: server
-            initialDelaySeconds: 40
+            initialDelaySeconds: 70
             periodSeconds: 3
           readinessProbe:
               httpGet:
