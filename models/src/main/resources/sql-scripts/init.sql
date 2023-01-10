@@ -1,1 +1,1 @@
-INSERT INTO artikli (name, store, price) VALUES ('Rdeče vino', 'Mercator', 15.3), ('Rdeče vino', 'SN', 15.4), ('Rdeče vino', 'Tus', 15.4), ('Kruh', 'Mercator', 15.5),('Kruh', 'SN', 15.5), ('Kruh', 'Tus', 15.6), ('Mleko', 'Mercator', 15.7), ('Mleko', 'SN', 15.9), ('Mleko', 'Tus', 15.9);
+INSERT INTO artikli (name, store, price) VALUES ('Rdeče vino', 'Mercator', 15.3), ('Rdeče vino', 'Spar', 15.4), ('Kruh', 'Mercator', 15.5), ('Kruh', 'Spar', 15.6), ('Mleko', 'Mercator', 15.7), ('Mleko', 'Spar', 15.9);

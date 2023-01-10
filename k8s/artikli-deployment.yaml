@@ -33,7 +33,7 @@ spec:
             httpGet:
               path: /health/live
               port: server
-            initialDelaySeconds: 70
+            initialDelaySeconds: 40
             periodSeconds: 3
           readinessProbe:
               httpGet:

@@ -8,11 +8,7 @@ import java.time.Instant;
 @NamedQueries(value =
         {
                 @NamedQuery(name = "ArtikliEntity.getAll",
-                        query = "SELECT im FROM ArtikliEntity im"),
-                @NamedQuery(name = "ArtikliEntity.getAllWithName",
-                        query = "SELECT ar FROM ArtikliEntity ar WHERE ar.name=:name"),
-                @NamedQuery(name = "ArtikliEntity.getAllWithNameAndStore",
-                        query = "SELECT ar FROM ArtikliEntity ar WHERE ar.name=:name AND ar.store=:store")
+                        query = "SELECT im FROM ArtikliEntity im")
         })
 public class ArtikliEntity {
 
@@ -41,8 +37,8 @@ public class ArtikliEntity {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setName(String title) {
+        this.name = title;
     }
 
     public String getStore() {
