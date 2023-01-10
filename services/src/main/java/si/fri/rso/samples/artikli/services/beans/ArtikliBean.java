@@ -37,6 +37,16 @@ public class ArtikliBean {
         return resultList.stream().map(ArtikliConverter::toDto).collect(Collectors.toList());
     }
 
+    public Artikli getArtikliWithNameStore(String name, String store){
+        TypedQuery<ArtikliEntity> query = em.createNamedQuery(
+                "ArtikliEntity.getAllWithNameAndStore", ArtikliEntity.class);
+        query.setParameter("name", name);
+        query.setParameter("store", store);
+
+        ArtikliEntity artikli = query.getSingleResult();
+
+        return ArtikliConverter.toDto(artikli);
+    }
     public List<Artikli> getArtikli() {
 
         TypedQuery<ArtikliEntity> query = em.createNamedQuery(
