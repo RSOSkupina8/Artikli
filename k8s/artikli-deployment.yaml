@@ -13,13 +13,13 @@ spec:
         app: artikli
     spec:
       containers:
-        - image: fdemsar/artikli:2023-01-09-22-13-13
+        - image: fdemsar/artikli
           name: artikli
           env:
             - name: KUMULUZEE_DATASOURCES0_CONNECTIONURL
-              value: jdbc:postgresql://snuffleupagus.db.elephantsql.com:5432/zismkcwt
+              value: jdbc:postgresql://mouse.db.elephantsql.com:5432/ajhhwgxt
             - name: KUMULUZEE_DATASOURCES0_USERNAME
-              value: zismkcwt
+              value: ajhhwgxt
             - name: KUMULUZEE_DATASOURCES0_PASSWORD
               valueFrom:
                 secretKeyRef:
