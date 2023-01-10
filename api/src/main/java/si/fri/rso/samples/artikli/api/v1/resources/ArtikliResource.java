@@ -135,11 +135,17 @@ public class ArtikliResource {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        float priceS = 0;
+        try {
+            priceS = makeSparApiCall(artikliName);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         CompletableFuture<List<Float>> apiResult = CompletableFuture.supplyAsync(() -> {
             List<Float> prices = null;
             try {
-                prices = makeApiCall(artikliName);
+                prices = makeAsnycApiCallScrapper(artikliName);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -149,19 +155,22 @@ public class ArtikliResource {
         List<Float> result = apiResult.join();
         System.out.println(result);
         Artikli artikliM = artikliBean.getArtikliWithNameStore(artikliName, "Mercator");
-        Artikli artikliS = artikliBean.getArtikliWithNameStore(artikliName, "SN");
+        Artikli artikliSN = artikliBean.getArtikliWithNameStore(artikliName, "SN");
+        Artikli artikliS = artikliBean.getArtikliWithNameStore(artikliName, "Spar");
         Artikli artikliT = artikliBean.getArtikliWithNameStore(artikliName, "Tus");
         Float priceT = result.get(0);
-        Float priceS = result.get(1);
+        Float priceSN = result.get(1);
         artikliM.setPrice(priceM);
+        artikliSN.setPrice(priceSN);
         artikliS.setPrice(priceS);
         artikliT.setPrice(priceT);
         artikliM = artikliBean.putArtikli(artikliM.getArtikelId(), artikliM);
+        artikliSN = artikliBean.putArtikli(artikliSN.getArtikelId(), artikliSN);
         artikliS = artikliBean.putArtikli(artikliS.getArtikelId(), artikliS);
-
         artikliT = artikliBean.putArtikli(artikliT.getArtikelId(), artikliT);
         artikliList.clear();
         artikliList.add(artikliM);
+        artikliList.add(artikliSN);
         artikliList.add(artikliS);
         artikliList.add(artikliT);
         return Response.status(Response.Status.OK).entity(artikliList).build();
@@ -196,9 +205,40 @@ public class ArtikliResource {
         return price;
     }
 
-    private static List<Float> makeApiCall(String name) throws IOException {
+    private static float makeSparApiCall(String name) throws Exception{
+        float price = 0;
+        try{
+            URL url = new URL("https://search-spar.spar-ics.com/fact-finder/rest/v2/search/products_lmos_si?q="+
+                    URLEncoder.encode(name, "UTF-8")+"&query="+
+                    URLEncoder.encode(name, "UTF-8")+
+                    "&hitsPerPage=1");
+
+            System.out.println(url.toString());
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuilder content = new StringBuilder();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+            in.close();
+
+            JSONObject jsonObject = new JSONObject(content.toString());
+            JSONObject dataObject = jsonObject.getJSONArray("hits").getJSONObject(0)
+                                              .getJSONObject("masterValues");
+
+            price = dataObject.getFloat("price");
+            System.out.println("Price: "+price);
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+        return price;
+    }
+
+    private static List<Float> makeAsnycApiCallScrapper(String name) throws IOException {
         // Make a URL to the web page
-        URL url = new URL("http://20.250.60.246:8081/v1/scrapper/"+URLEncoder.encode(name, "UTF-8"));
+        URL url = new URL("http://20.73.149.162:8080/v1/scrapper/"+URLEncoder.encode(name, "UTF-8"));
         System.out.println(url.toString());
 
         // Get the input stream through URL Connection
