@@ -16,7 +16,6 @@ import org.json.JSONObject;
 import si.fri.rso.samples.artikli.api.v1.dtos.UploadArtikliResponse;
 import si.fri.rso.samples.artikli.lib.Artikli;
 import si.fri.rso.samples.artikli.services.beans.ArtikliBean;
-import si.fri.rso.samples.artikli.services.clients.ArtikliProcessingApi;
 import si.fri.rso.samples.artikli.services.dtos.ArtikliProcessRequest;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -55,10 +54,6 @@ public class ArtikliResource {
     @Inject
     private ArtikliBean artikliBean;
 
-    @Inject
-    @RestClient
-    private ArtikliProcessingApi artikliProcessingApi;
-
     @Context
     protected UriInfo uriInfo;
 
@@ -86,9 +81,27 @@ public class ArtikliResource {
     @GET
     @Path("/name/{name}")
     public Response getArtikli(@Parameter(description = "Name of artikel.", required = true)
-                                   @PathParam("name") String name) {
+                               @PathParam("name") String name) {
 
         List<Artikli> artikli = artikliBean.getArtikliWithName(name);
+        return Response.status(Response.Status.OK).entity(artikli).build();
+    }
+
+    @Operation(description = "Get all artikli with name and store.", summary = "Get all metadata")
+    @APIResponses({
+            @APIResponse(responseCode = "200",
+                    description = "List of artikli",
+                    content = @Content(schema = @Schema(implementation = Artikli.class, type = SchemaType.ARRAY)),
+                    headers = {@Header(name = "X-Total-Count", description = "Number of objects in list")}
+            )})
+    @GET
+    @Path("/name/{name}/{store}")
+    public Response getArtikliByNameAndStore(@Parameter(description = "Name of artikel.", required = true)
+                                                 @PathParam("name") String name,
+                                             @Parameter(description = "Store of artikel.", required = true)
+                                                 @PathParam("store") String store) {
+
+        Artikli artikli = artikliBean.getArtikliWithNameStore(name, store);
         return Response.status(Response.Status.OK).entity(artikli).build();
     }
 
@@ -164,50 +177,65 @@ public class ArtikliResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        return Response.status(Response.Status.NOT_MODIFIED).build();
+        return Response.status(Response.Status.OK).build();
 
     }
 
     @PUT
-    @Path("refresh/{artikliId}")
-    public Response putRefreshArtikli(@Parameter(description = "Artikli Id.", required = true)
-                               @PathParam("artikliId") Integer artikliId,
-                               @RequestBody(
-                                       description = "DTO object with artikli metadata.",
-                                       required = true, content = @Content(
-                                       schema = @Schema(implementation = Artikli.class)))
-                               Artikli artikli){
+    @Path("refresh/{artikliName}")
+    public Response putRefreshArtikli(@Parameter(description = "Artikli Name.", required = true)
+                               @PathParam("artikliName") String artikliName){
 
-        artikli = artikliBean.getArtikli(artikliId);
-        String artikliName = artikli.getName();
+        List<Artikli> artikliList = artikliBean.getArtikliWithName(artikliName);
+        float priceM = 0;
         try {
-            Float price = makeMercatorApiCall(artikliName);
+            priceM = makeMercatorApiCall(artikliName);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        CompletableFuture<List<Float>> future = new CompletableFuture<>();
-        new Thread(() -> {
+//        CompletableFuture<List<Float>> future = new CompletableFuture<>();
+//        new Thread(() -> {
+//            try {
+//                List<Float> prices = makeApiCall(artikliName);
+//                future.complete(prices);
+//            } catch (IOException e) {
+//                future.completeExceptionally(e);
+//            }
+//        }).start();
+        CompletableFuture<List<Float>> apiResult = CompletableFuture.supplyAsync(() -> {
+            List<Float> prices = null;
             try {
-                List<Float> prices = makeApiCall(artikliName);
-                future.complete(prices);
+                prices = makeApiCall(artikliName);
             } catch (IOException e) {
-                future.completeExceptionally(e);
+                throw new RuntimeException(e);
             }
-        }).start();
-        CompletionStage<Void> callback = future.thenAccept(response -> {
-            // Update the Person object with the API response
-            System.out.println("XXXXXXXXXXX PRICE XXXXXXXXXX" + response.toString());
-
+            return prices;
         });
 
-        // Wait for the callback to complete
-        callback.toCompletableFuture().join();
+        List<Float> result = apiResult.join();
+        System.out.println(result);
+        Artikli artikliM = artikliBean.getArtikliWithNameStore(artikliName, "Mercator");
+        Artikli artikliS = artikliBean.getArtikliWithNameStore(artikliName, "SN");
+        Artikli artikliT = artikliBean.getArtikliWithNameStore(artikliName, "Tus");
+        Float priceT = result.get(0);
+        Float priceS = result.get(1);
+        artikliM.setPrice(priceM);
+        artikliS.setPrice(priceS);
+        artikliT.setPrice(priceT);
+        artikliM = artikliBean.putArtikli(artikliM.getArtikelId(), artikliM);
+        artikliS = artikliBean.putArtikli(artikliS.getArtikelId(), artikliS);
 
-        return Response.status(Response.Status.NOT_MODIFIED).build();
+        artikliT = artikliBean.putArtikli(artikliT.getArtikelId(), artikliT);
+        artikliList.clear();
+        artikliList.add(artikliM);
+        artikliList.add(artikliS);
+        artikliList.add(artikliT);
+        return Response.status(Response.Status.OK).entity(artikliList).build();
 
     }
 
     private static float makeMercatorApiCall(String name) throws Exception{
+        float price = 0;
         try{
             URL url = new URL("https://trgovina.mercator.si/market/products/browseProducts/getProducts?limit=1&offset=0&filterData[search]="+
                     URLEncoder.encode(name, "UTF-8"));
@@ -226,17 +254,17 @@ public class ArtikliResource {
             String contentStr = content.toString().substring(1, content.length()-1);
             JSONObject jsonObject = new JSONObject(contentStr);
             JSONObject dataObject = jsonObject.getJSONObject("data");
-            Float price = dataObject.getFloat("current_price");
+            price = dataObject.getFloat("current_price");
             System.out.println("Price: "+price);
         } catch (IOException e){
             e.printStackTrace();
         }
-        return 0;
+        return price;
     }
 
     private static List<Float> makeApiCall(String name) throws IOException {
         // Make a URL to the web page
-        URL url = new URL("http://20.208.58.20:8080/v1/scrapper/"+name);
+        URL url = new URL("http://20.208.56.30:8081/v1/scrapper/"+URLEncoder.encode(name, "UTF-8"));
         System.out.println(url.toString());
 
         // Get the input stream through URL Connection
