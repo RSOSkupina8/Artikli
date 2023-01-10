@@ -13,7 +13,7 @@ spec:
         app: artikli
     spec:
       containers:
-        - image: fdemsar/artikli:2023-01-09-22-13-13
+        - image: fdemsar/artikli:2022-12-30-02-04-51
           name: artikli
           env:
             - name: KUMULUZEE_DATASOURCES0_CONNECTIONURL
