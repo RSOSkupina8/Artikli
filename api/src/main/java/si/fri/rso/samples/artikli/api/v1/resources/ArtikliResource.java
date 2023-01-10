@@ -38,8 +38,8 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 @Path("/artikli")
 @Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
-@CrossOrigin
+@Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+@CrossOrigin(supportedMethods = "GET, POST, PUT, DELETE, HEAD, OPTIONS")
 public class ArtikliResource {
 
     private Logger log = Logger.getLogger(ArtikliResource.class.getName());
